@@ -45,7 +45,7 @@ func parseVal(v reflect.Value, r *bufio.Reader) error {
 			return fmt.Errorf("Parse error: %v", err)
 		}
 	case reflect.Struct:
-		if err := buildDict(v, r); err != nil {
+		if err := buildStruct(v, r); err != nil {
 			return fmt.Errorf("Parse error: %v", err)
 		}
 
@@ -179,7 +179,7 @@ func buildSlice(v reflect.Value, r *bufio.Reader) error {
 	return nil
 }
 
-func buildDict(v reflect.Value, r *bufio.Reader) error {
+func buildStruct(v reflect.Value, r *bufio.Reader) error {
 	val := reflect.Indirect(v)
 
 	rune, _, err := r.ReadRune()
@@ -209,11 +209,52 @@ func buildDict(v reflect.Value, r *bufio.Reader) error {
 		fieldVal, err := getFieldWithMatchingTag(key, val)
 
 		if err != nil {
+			err = skipNext(r)
+			if err != nil {
+				return err
+			}
 			continue
 		}
 		parseVal(fieldVal, r)
 	}
 
+	return nil
+}
+
+func skipNext(r *bufio.Reader) error {
+	t, err := r.ReadByte()
+	if err != nil {
+		return ReadError
+	}
+	if t == 'e' {
+		return nil
+	}
+
+	if t == 'i' {
+		r.UnreadByte()
+		_, err = parseInt(r)
+	} else if isDigit(rune(t)) {
+		r.UnreadByte()
+		_, err = parseString(r)
+	} else if t == 'l' || t == 'd' {
+		for {
+			err = skipNext(r)
+			if err != nil {
+				return err
+			}
+			
+			t, err = r.ReadByte()
+			if err != nil {
+				return ReadError
+			}
+			if t == 'e' {
+				break
+			} else {
+				r.UnreadByte()
+			}
+
+		}
+	}
 	return nil
 }
 

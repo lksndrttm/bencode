@@ -258,6 +258,78 @@ func TestParseDictWithListField(t *testing.T) {
 		t.Fatalf("%v != %v", res, expected)
 	}
 }
+
+func TestParseDictOnlyRequiredFields1(t *testing.T) {
+	input := "d6:field1i1e6:field2i2e6:field34:teste"
+	reader := strings.NewReader(input)
+
+	res := struct {
+		Field1 int    `bencode:"field1"`
+		Field3 string `bencode:"field3"`
+	}{}
+	expected := struct {
+		Field1 int    `bencode:"field1"`
+		Field3 string `bencode:"field3"`
+	}{1, "test"}
+
+	err := Parse(&res, reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res != expected {
+		t.Errorf("%v != %v", res, expected)
+	}
+}
+
+func TestParseDictOnlyRequiredFields2(t *testing.T) {
+	input := "d6:field1i1e6:field2i2e6:field2li1ei2ei3ee6:field34:teste"
+	reader := strings.NewReader(input)
+
+	res := struct {
+		Field1 int    `bencode:"field1"`
+		Field3 string `bencode:"field3"`
+	}{}
+	expected := struct {
+		Field1 int    `bencode:"field1"`
+		Field3 string `bencode:"field3"`
+	}{1, "test"}
+
+	err := Parse(&res, reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res != expected {
+		t.Errorf("%v != %v", res, expected)
+	}
+}
+
+func TestParseDictOnlyRequiredFields3(t *testing.T) {
+	input := "d6:field1i1e6:field7d2:f1l2:xx2:yy:2:zze2:f2d2:f1i1e2:f2i2eee6:field2i2e6:field2li1ei2ei3ee6:field34:teste"
+	reader := strings.NewReader(input)
+
+	res := struct {
+		Field1 int    `bencode:"field1"`
+		Field3 string `bencode:"field3"`
+	}{}
+	expected := struct {
+		Field1 int    `bencode:"field1"`
+		Field3 string `bencode:"field3"`
+	}{1, "test"}
+
+	err := Parse(&res, reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res != expected {
+		t.Errorf("%v != %v", res, expected)
+	}
+}
+
+
+
 func TestParseDictWithDictField(t *testing.T) {
 	input := "d6:field1i1e6:field2d3:sf1i1e3:sf27:subteste6:field34:teste"
 	reader := strings.NewReader(input)
