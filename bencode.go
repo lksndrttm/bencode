@@ -242,7 +242,7 @@ func skipNext(r *bufio.Reader) error {
 			if err != nil {
 				return err
 			}
-			
+
 			t, err = r.ReadByte()
 			if err != nil {
 				return ReadError

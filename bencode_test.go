@@ -328,8 +328,6 @@ func TestParseDictOnlyRequiredFields3(t *testing.T) {
 	}
 }
 
-
-
 func TestParseDictWithDictField(t *testing.T) {
 	input := "d6:field1i1e6:field2d3:sf1i1e3:sf27:subteste6:field34:teste"
 	reader := strings.NewReader(input)
