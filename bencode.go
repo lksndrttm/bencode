@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"sort"
 	"strconv"
 )
 
-func Parse(v any, r io.Reader) error {
+func Unmarshal(v any, r io.Reader) error {
 	val := reflect.ValueOf(v)
 	if val.Kind() != reflect.Ptr {
 		return errors.New("v must be a pointer.")
@@ -17,6 +18,95 @@ func Parse(v any, r io.Reader) error {
 	reader := bufio.NewReader(r)
 
 	return parseVal(val, reader)
+}
+
+func Marshal(v any) ([]byte, error) {
+	val := reflect.ValueOf(v)
+	val = reflect.Indirect(val)
+
+	return marshalVal(val)
+}
+
+var ReadError = errors.New("Parse error. Reading error.")
+
+func marshalVal(v reflect.Value) ([]byte, error) {
+	switch v.Kind() {
+	case reflect.Int:
+		value := v.Interface().(int)
+		bStr := fmt.Sprintf("i%de", value)
+		return []byte(bStr), nil
+	case reflect.String:
+		value := v.Interface().(string)
+		bStr := fmt.Sprintf("%d:%s", len([]byte(value)), value)
+		return []byte(bStr), nil
+	case reflect.Slice:
+		return marshalSlice(v)
+	case reflect.Struct:
+		return marshalStruct(v)
+	default:
+		return []byte{}, errors.New("Unsupported type.")
+	}
+}
+
+func marshalSlice(v reflect.Value) ([]byte, error) {
+	bStr := []byte{'l'}
+	for i := range v.Len() {
+		elem := v.Index(i)
+		elemBStr, err := marshalVal(elem)
+		if err != nil {
+			return []byte{}, err
+		}
+
+		bStr = append(bStr, elemBStr...)
+	}
+	bStr = append(bStr, 'e')
+
+	return bStr, nil
+}
+
+func marshalStruct(v reflect.Value) ([]byte, error) {
+	bencode := []byte{'d'}
+	fieldIds := []int{}
+
+	for i := range v.NumField() {
+		fieldType := v.Type().Field(i)
+
+		_, ok := fieldType.Tag.Lookup("bencode")
+
+		if !ok {
+			continue
+		}
+		fieldIds = append(fieldIds, i)
+	}
+
+	sort.Slice(fieldIds, func(i, j int) bool {
+		tagI, _ := v.Type().Field(fieldIds[i]).Tag.Lookup("bencode")
+		tagJ, _ := v.Type().Field(fieldIds[j]).Tag.Lookup("bencode")
+		return tagI < tagJ
+	})
+
+	for _, fid := range fieldIds {
+		field := v.Field(fid)
+		fieldType := v.Type().Field(fid)
+		tag, ok := fieldType.Tag.Lookup("bencode")
+
+		if !ok {
+			return []byte{}, errors.New("Tag retrieval error.")
+		}
+
+		fieldNameBencode := fmt.Sprintf("%d:%s", len([]byte(tag)), tag)
+		bencode = append(bencode, []byte(fieldNameBencode)...)
+
+		elemValBencode, err := marshalVal(field)
+		if err != nil {
+			return []byte{}, err
+		}
+		bencode = append(bencode, elemValBencode...)
+
+	}
+	bencode = append(bencode, 'e')
+
+	return bencode, nil
 }
 
 func parseVal(v reflect.Value, r *bufio.Reader) error {
@@ -279,5 +369,3 @@ func getFieldWithMatchingTag(key string, st reflect.Value) (reflect.Value, error
 	return reflect.Value{}, fmt.Errorf("Tag %s not found.\n", key)
 
 }
-
-var ReadError = errors.New("Parse error. Reading error.")

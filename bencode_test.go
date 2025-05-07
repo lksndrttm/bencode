@@ -6,12 +6,12 @@ import (
 	"testing"
 )
 
-func TestParseString(t *testing.T) {
+func TestUnmarshalString(t *testing.T) {
 	input := "7:testval"
 	reader := strings.NewReader(input)
 	var res string
 
-	err := Parse(&res, reader)
+	err := Unmarshal(&res, reader)
 
 	if err != nil {
 		t.Fatal(err)
@@ -22,24 +22,24 @@ func TestParseString(t *testing.T) {
 	}
 }
 
-func TestParseStringIllformed(t *testing.T) {
+func TestUnmarshalStringIllformed(t *testing.T) {
 	input := "7:testva"
 	reader := strings.NewReader(input)
 	var res string
 
-	err := Parse(&res, reader)
+	err := Unmarshal(&res, reader)
 
 	if err == nil {
 		t.Fatalf("Parsing ill-formed bencode must return error.")
 	}
 }
 
-func TestParseInt(t *testing.T) {
+func TestUnmarshalInt(t *testing.T) {
 	input := "i1337e"
 	reader := strings.NewReader(input)
 	var res int
 
-	err := Parse(&res, reader)
+	err := Unmarshal(&res, reader)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,26 +49,26 @@ func TestParseInt(t *testing.T) {
 	}
 }
 
-func TestParseIntIllformed(t *testing.T) {
+func TestUnmarshalIntIllformed(t *testing.T) {
 
 	input := "i1notdigit1e"
 	reader := strings.NewReader(input)
 	var res int
 
-	err := Parse(&res, reader)
+	err := Unmarshal(&res, reader)
 
 	if err == nil {
 		t.Fatalf("Parsing ill-formed bencode must return error.")
 	}
 }
 
-func TestParseListInt(t *testing.T) {
+func TestUnmarshalListInt(t *testing.T) {
 	input := "li1ei2ei3ee"
 	reader := strings.NewReader(input)
 	var res []int
 	expected := []int{1, 2, 3}
 
-	err := Parse(&res, reader)
+	err := Unmarshal(&res, reader)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,35 +78,35 @@ func TestParseListInt(t *testing.T) {
 	}
 }
 
-func TestParseListIntIllformed1(t *testing.T) {
+func TestUnmarshalListIntIllformed1(t *testing.T) {
 	input := "li1ei2ei3e"
 	reader := strings.NewReader(input)
 	var res []int
 
-	err := Parse(&res, reader)
+	err := Unmarshal(&res, reader)
 	if err == nil {
 		t.Fatalf("Parsing ill-formed bencode must return error.")
 	}
 }
 
-func TestParseListIntIllformed2(t *testing.T) {
+func TestUnmarshalListIntIllformed2(t *testing.T) {
 	input := "li1ei2e2:abe"
 	reader := strings.NewReader(input)
 	var res []int
 
-	err := Parse(&res, reader)
+	err := Unmarshal(&res, reader)
 	if err == nil {
 		t.Fatalf("Parsing ill-formed bencode must return error.")
 	}
 }
 
-func TestParseListString(t *testing.T) {
+func TestUnmarshalListString(t *testing.T) {
 	input := "l2:aa2:bb2:cce"
 	reader := strings.NewReader(input)
 	var res []string
 	expected := []string{"aa", "bb", "cc"}
 
-	err := Parse(&res, reader)
+	err := Unmarshal(&res, reader)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -116,13 +116,13 @@ func TestParseListString(t *testing.T) {
 	}
 }
 
-func TestParseListEmpty(t *testing.T) {
+func TestUnmarshalListEmpty(t *testing.T) {
 	input := "le"
 	reader := strings.NewReader(input)
 	var res []string
 	expected := []string{}
 
-	err := Parse(&res, reader)
+	err := Unmarshal(&res, reader)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -132,13 +132,13 @@ func TestParseListEmpty(t *testing.T) {
 	}
 }
 
-func TestParseListOfListOfStrings(t *testing.T) {
+func TestUnmarshalListOfListOfStrings(t *testing.T) {
 	input := "ll2:aa2:bb2:ccel2:aa2:bb2:ccel2:aa2:bb2:ccee"
 	reader := strings.NewReader(input)
 	var res [][]string
 	expected := [][]string{{"aa", "bb", "cc"}, {"aa", "bb", "cc"}, {"aa", "bb", "cc"}}
 
-	err := Parse(&res, reader)
+	err := Unmarshal(&res, reader)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -154,13 +154,13 @@ func TestParseListOfListOfStrings(t *testing.T) {
 	}
 }
 
-func TestParseListOfListOfInt(t *testing.T) {
+func TestUnmarshalListOfListOfInt(t *testing.T) {
 	input := "lli1ei2ei3eeli1ei2ei3eeli1ei2ei3eee"
 	reader := strings.NewReader(input)
 	var res [][]int
 	expected := [][]int{{1, 2, 3}, {1, 2, 3}, {1, 2, 3}}
 
-	err := Parse(&res, reader)
+	err := Unmarshal(&res, reader)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -176,7 +176,7 @@ func TestParseListOfListOfInt(t *testing.T) {
 	}
 }
 
-func TestParseListOfDicts(t *testing.T) {
+func TestUnmarshalListOfDicts(t *testing.T) {
 	type testStruct struct {
 		Field1 int    `bencode:"sf1"`
 		Field2 string `bencode:"sf2"`
@@ -191,7 +191,7 @@ func TestParseListOfDicts(t *testing.T) {
 		{Field1: 2, Field2: "test2"},
 	}
 
-	err := Parse(&res, reader)
+	err := Unmarshal(&res, reader)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -201,7 +201,7 @@ func TestParseListOfDicts(t *testing.T) {
 	}
 }
 
-func TestParseDictFlat(t *testing.T) {
+func TestUnmarshalDictFlat(t *testing.T) {
 	input := "d6:field1i1e6:field2i2e6:field34:teste"
 	reader := strings.NewReader(input)
 
@@ -216,7 +216,7 @@ func TestParseDictFlat(t *testing.T) {
 		Field3 string `bencode:"field3"`
 	}{1, 2, "test"}
 
-	err := Parse(&res, reader)
+	err := Unmarshal(&res, reader)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -226,7 +226,7 @@ func TestParseDictFlat(t *testing.T) {
 	}
 }
 
-func TestParseDictWithListField(t *testing.T) {
+func TestUnmarshalDictWithListField(t *testing.T) {
 	input := "d6:field1i1e6:field2li1ei2ei3ee6:field34:teste"
 	reader := strings.NewReader(input)
 
@@ -239,7 +239,7 @@ func TestParseDictWithListField(t *testing.T) {
 
 	expected := testStruct{Field1: 1, Field2: []int{1, 2, 3}, Field3: "test"}
 
-	err := Parse(&res, reader)
+	err := Unmarshal(&res, reader)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -259,7 +259,7 @@ func TestParseDictWithListField(t *testing.T) {
 	}
 }
 
-func TestParseDictOnlyRequiredFields1(t *testing.T) {
+func TestUnmarshalDictOnlyRequiredFields1(t *testing.T) {
 	input := "d6:field1i1e6:field2i2e6:field34:teste"
 	reader := strings.NewReader(input)
 
@@ -272,7 +272,7 @@ func TestParseDictOnlyRequiredFields1(t *testing.T) {
 		Field3 string `bencode:"field3"`
 	}{1, "test"}
 
-	err := Parse(&res, reader)
+	err := Unmarshal(&res, reader)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -282,7 +282,7 @@ func TestParseDictOnlyRequiredFields1(t *testing.T) {
 	}
 }
 
-func TestParseDictOnlyRequiredFields2(t *testing.T) {
+func TestUnmarshalDictOnlyRequiredFields2(t *testing.T) {
 	input := "d6:field1i1e6:field2i2e6:field2li1ei2ei3ee6:field34:teste"
 	reader := strings.NewReader(input)
 
@@ -295,7 +295,7 @@ func TestParseDictOnlyRequiredFields2(t *testing.T) {
 		Field3 string `bencode:"field3"`
 	}{1, "test"}
 
-	err := Parse(&res, reader)
+	err := Unmarshal(&res, reader)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -305,7 +305,7 @@ func TestParseDictOnlyRequiredFields2(t *testing.T) {
 	}
 }
 
-func TestParseDictOnlyRequiredFields3(t *testing.T) {
+func TestUnmarshalDictOnlyRequiredFields3(t *testing.T) {
 	input := "d6:field1i1e6:field7d2:f1l2:xx2:yy:2:zze2:f2d2:f1i1e2:f2i2eee6:field2i2e6:field2li1ei2ei3ee6:field34:teste"
 	reader := strings.NewReader(input)
 
@@ -318,7 +318,7 @@ func TestParseDictOnlyRequiredFields3(t *testing.T) {
 		Field3 string `bencode:"field3"`
 	}{1, "test"}
 
-	err := Parse(&res, reader)
+	err := Unmarshal(&res, reader)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -328,7 +328,7 @@ func TestParseDictOnlyRequiredFields3(t *testing.T) {
 	}
 }
 
-func TestParseDictWithDictField(t *testing.T) {
+func TestUnmarshalDictWithDictField(t *testing.T) {
 	input := "d6:field1i1e6:field2d3:sf1i1e3:sf27:subteste6:field34:teste"
 	reader := strings.NewReader(input)
 
@@ -346,12 +346,144 @@ func TestParseDictWithDictField(t *testing.T) {
 
 	expected := testStruct{Field1: 1, Field2: subStruct{SubField1: 1, SubField2: "subtest"}, Field3: "test"}
 
-	err := Parse(&res, reader)
+	err := Unmarshal(&res, reader)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	if res != expected {
 		t.Fatalf("%v != %v", res, expected)
+	}
+}
+
+func TestMarshalInt(t *testing.T) {
+	input := 123
+	expected := "i123e"
+
+	res, err := Marshal(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resString := string(res)
+
+	if resString != expected {
+		t.Fatalf("%v != %v", resString, expected)
+	}
+}
+
+func TestMarshalString(t *testing.T) {
+	input := "test"
+	expected := "4:test"
+
+	res, err := Marshal(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resString := string(res)
+
+	if resString != expected {
+		t.Fatalf("'%s' != '%s'", resString, expected)
+	}
+}
+
+func TestMarshalListOfStrings(t *testing.T) {
+	input := []string{"str1", "str2", "str3"}
+	expected := "l4:str14:str24:str3e"
+
+	res, err := Marshal(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resString := string(res)
+
+	if resString != expected {
+		t.Fatalf("'%s' != '%s'", resString, expected)
+	}
+}
+
+func TestMarshalListOfInt(t *testing.T) {
+	input := []int{11, 22, 33}
+	expected := "li11ei22ei33ee"
+
+	res, err := Marshal(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resString := string(res)
+
+	if resString != expected {
+		t.Fatalf("'%s' != '%s'", resString, expected)
+	}
+}
+
+func TestMarshalListOfLists(t *testing.T) {
+	input := [][]int{{11, 22, 33}, {11, 22, 33}, {11, 22, 33}}
+	expected := "lli11ei22ei33eeli11ei22ei33eeli11ei22ei33eee"
+
+	res, err := Marshal(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resString := string(res)
+
+	if resString != expected {
+		t.Fatalf("'%s' != '%s'", resString, expected)
+	}
+}
+
+func TestMarshalStructFlat(t *testing.T) {
+	input := struct {
+		Field2 int    `bencode:"field2"`
+		Field1 int    `bencode:"field1"`
+		Field3 string `bencode:"field3"`
+	}{2, 1, "test"}
+	expected := "d6:field1i1e6:field2i2e6:field34:teste"
+
+	res, err := Marshal(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resString := string(res)
+
+	if resString != expected {
+		t.Fatalf("'%s' != '%s'", resString, expected)
+	}
+}
+
+func TestMarshalStructNested(t *testing.T) {
+	type subStruct struct {
+		SubField2 int    `bencode:"sf2"`
+		SubField1 string `bencode:"sf1"`
+		SubField3 []int  `bencode:"sf3"`
+	}
+
+	type testStruct struct {
+		Field2 int       `bencode:"field2"`
+		Field1 subStruct `bencode:"field1"`
+		Field3 string    `bencode:"field3"`
+	}
+
+	input := testStruct{
+		Field2: 345,
+		Field1: subStruct{SubField2: 123, SubField1: "subtest", SubField3: []int{1, 2, 3}},
+		Field3: "test",
+	}
+	expected := "d6:field1d3:sf17:subtest3:sf2i123e3:sf3li1ei2ei3eee6:field2i345e6:field34:teste"
+
+	res, err := Marshal(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resString := string(res)
+
+	if resString != expected {
+		t.Fatalf("'%s' != '%s'", resString, expected)
 	}
 }
